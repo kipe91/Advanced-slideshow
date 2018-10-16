@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Meta's -->
+    <title>Kim Pettersson - ImageZoom</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Kim Pettersson">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+<!-- Styles -->
+    <style>
+		html {
+		    height: 100%;
+		    width: 100%;
+		}
+		/* Container */
+		.container {
+			position: relative;
+		    width: 600px;
+		    height: 400px;
+		    margin: 100px;
+		    padding: 0;
+		    background-color: white; /* #2F2F2F; */
+		    text-align: center;
+		}
+		/* Image area */
+		.imgHolder {
+			position: relative;
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+		}
+		.slideshowImage {
+			display: none;
+			-webkit-animation-name: fade;
+			animation-name: fade;
+			-webkit-animation-duration: 1.5s;
+			animation-duration: 1.5s;
+			position: absolute;
+			margin: auto;
+			left: 0;
+			right: 0;
+		    top:0;
+		    bottom:0;
+		}
+		.activeImg {
+			display: block;
+		}
+		/* Circle area */
+		.circleHolder {
+			position: absolute;
+			left: 0;
+			bottom: 10px;
+			width: 100%;
+		}
+		.circle {
+			width: 15px;
+			height: 15px;
+			border-radius: 50%;
+			background-color: transparent;
+			border: 1px solid #E82E2E;
+			display: inline-block;
+			transition: background-color 0.6s ease;
+		}
+		.circle:hover {
+			background-color: #2E75B1;
+		}
+		.activeCircle {
+			background-color: #3390BB;
+		}
+		/* Arrows */
+		.arrowBtn {
+			position: absolute;
+			top: calc(50% - 5px);
+			background-color: transparent;
+			border: 4px solid #6A1010;
+			outline: 1px solid #E82E2E;
+			color: #B31717;
+			font-size: 18px;
+			opacity: 0.5;
+		}
+		.arrowBtn:hover {
+			border-color: #6A1010;
+			color: #6A1010;
+			opacity: 1;
+		}
+		.container:hover .arrowBtn {
+			opacity: 0.8;
+		}
+		.right {
+			right: 0;
+		}
+		.left {
+			left: 0;
+		}
+		/* Animations */
+		@-webkit-keyframes fade {
+			from {opacity: 0.4}
+			to {opacity: 1}
+		}
+		@keyframes fade {
+			from {opacity: 0.4}
+			to {opacity: 1}
+		}
+	</style>
+</head>
+
+<!-- Body content -->
+<body>
+	<div class="container" id="container">
+		<div class="imgHolder" id="imgHolder"></div>
+		<div class="circleHolder" id="circleHolder"></div>
+		<button class="arrowBtn right" onclick="changeImg('plus')"><strong>&#10095;</strong></button>
+		<button class="arrowBtn left" onclick="changeImg('minus')"><strong>&#10094;</strong></button>
+	</div>
+
+<!-- Scripts -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<script>
+	/* Variables */
+	var container = document.getElementById("container");
+	var imgHolder = document.getElementById("imgHolder");
+	var circleHolder = document.getElementById("circleHolder");
+
+	var images = ['imgOne.jpg', 'imgTwo.jpg', 'testImgOne.jpg', 'testImgTwo.jpg', 'image-portrait.jpg', 'wallpaper.wiki.jpg', 'red-cute-icon.png'];
+
+	/* beginning of start function*/
+	$(document).ready(function(){
+		var imgFragment = document.createDocumentFragment();
+		for (var i=0; i < images.length; i++) {
+			var img = new Image();
+			var idName = 'pic' + (i+1);
+			img.src = 'images/' + images[i];
+			img.alt = idName;
+			img.setAttribute("id", idName);
+			if (i === 0) {
+				img.setAttribute("class", "slideshowImage activeImg");
+			}
+			else {
+				img.setAttribute("class", "slideshowImage");
+			}
+			img.addEventListener('load', (event) => {
+				var targetImg = event.target;
+				if (targetImg.naturalWidth > targetImg.naturalHeight) {
+					if (targetImg.naturalWidth < container.clientWidth) {
+						targetImg.style.width = targetImg.naturalWidth + 'px';
+					}
+					else {
+						targetImg.style.width = container.clientWidth + 'px';
+						/*var sizeProcentDiff = (container.clientHeight / targetImg.naturalWidth).toFixed(2);
+						var targetHeight = targetImg.naturalHeight - (targetImg.naturalHeight * sizeProcentDiff);
+						targetImg.style.marginTop = 'calc(50% - ' + (targetHeight / 2) + 'px)';*/
+					}
+				}
+				else {
+					if (targetImg.naturalHeight < container.clientHeight) {
+						targetImg.style.height = targetImg.naturalHeight + 'px';
+					}
+					else {
+						targetImg.style.height = container.clientHeight + 'px';
+					}
+				}
+			});
+			imgFragment.appendChild(img);
+		}
+		imgHolder.appendChild(imgFragment);
+
+		var circleFragment = document.createDocumentFragment();
+		for (var ii=0; ii < images.length; ii++) {
+			var circle = document.createElement("span");
+			var idName = 'circle' + (ii+1);
+			circle.setAttribute("id", idName);
+			circle.addEventListener('click', (event) => { changeImg(event.target.id) });
+			if (ii === 0) {
+				circle.setAttribute("class", "circle activeCircle");
+			}
+			else {
+				circle.setAttribute("class", "circle");
+			}
+			circleFragment.appendChild(circle);
+		}
+		circleHolder.appendChild(circleFragment);
+	});
+	/* End of start function */
+
+	/* Timer */
+	setInterval(() => {
+		changeImg('plus');
+	}, 5000);
+
+	/* Beginning of changeImg function */
+	var currentImgId = 1;
+	function changeImg(selection) {
+		var currentImage = 'pic' + currentImgId;
+		var currentCircle = 'circle' + currentImgId;
+		var nextImage, nextCircle;
+
+		if (selection === 'plus' || selection === 'minus') {
+			if (selection === 'plus') {
+				if ((currentImgId + 1) > images.length) {
+					nextImage = 'pic1';
+					nextCircle = 'circle1';
+					currentImgId = 1;
+				}
+				else {
+					nextImage = 'pic' + (currentImgId + 1);
+					nextCircle = 'circle' + (currentImgId + 1);
+					currentImgId += 1;
+				}
+			}
+			else {
+				if ((currentImgId - 1) < 1) {
+					nextImage = 'pic' + images.length;
+					nextCircle = 'circle' + images.length;
+					currentImgId = images.length;
+				}
+				else {
+					nextImage = 'pic' + (currentImgId - 1);
+					nextCircle = 'circle' + (currentImgId - 1);
+					currentImgId -= 1;
+				}
+			}
+		}
+		else {
+			var currentSelectionId = selection.slice((selection.length - 1));
+			var selectedId = parseInt(currentSelectionId);
+			if (currentImgId !== selectedId) {
+				nextImage = 'pic' + selectedId;
+				nextCircle = 'circle' + selectedId;
+				currentImgId = selectedId;
+			}
+		}
+		document.getElementById(currentImage).classList.remove("activeImg");
+		document.getElementById(currentCircle).classList.remove("activeCircle");
+		document.getElementById(nextImage).classList.add("activeImg");
+		document.getElementById(nextCircle).classList.add("activeCircle");
+	}
+	/* End of changeImg function */
+</script>
+
+</body>
+</html>
